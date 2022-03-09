@@ -31,6 +31,7 @@ class RandomWords extends StatefulWidget {
 class _RandomWordsState extends State<RandomWords> {
 
   final _suggestions = <WordPair>[];
+  // TODO: Put back
   final _saved = <WordPair>{};
   final _biggerFont = const TextStyle(fontSize: 18.0);
 
@@ -42,43 +43,19 @@ class _RandomWordsState extends State<RandomWords> {
         actions: [
           IconButton(
             icon: const Icon(Icons.list),
-            onPressed: _pushSaved,
             tooltip: 'Saved Suggestions',
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => FavoritesPage(savedNames: _saved)
+                  )
+              );
+            },
           ),
         ],
       ),
       body: _buildSuggestions(),
-    );
-  }
-
-  void _pushSaved() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) {
-          final tiles = _saved.map(
-              (pair) {
-                return ListTile(
-                  title: Text(
-                    pair.asPascalCase,
-                    style: _biggerFont,
-                  ),
-                );
-              },
-          );
-          final divided = tiles.isNotEmpty ? ListTile.divideTiles(
-            context: context,
-            tiles: tiles,
-          ).toList()
-              : <Widget>[];
-
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Saved Suggestions'),
-            ),
-            body: ListView(children: divided),
-          );
-        },
-      ),
     );
   }
 
@@ -104,6 +81,7 @@ class _RandomWordsState extends State<RandomWords> {
       title: Text(
         pair.asPascalCase,
         style: _biggerFont,
+        textAlign: TextAlign.center,
       ),
       trailing: Icon(
         alreadySaved ? Icons.favorite : Icons.favorite_border,
@@ -119,6 +97,58 @@ class _RandomWordsState extends State<RandomWords> {
           }
         });
       }
+    );
+  }
+
+}
+
+class FavoritesPage extends StatefulWidget {
+
+  const FavoritesPage({Key? key, required this.savedNames}) : super(key: key);
+
+  final Set<WordPair> savedNames;
+
+  @override
+  _FavoritesPageState createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
+
+  final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
+
+  @override
+  Widget build(BuildContext context) {
+
+    Iterable<ListTile> tiles = widget.savedNames.map((WordPair pair) {
+      return ListTile(
+        title: Text(
+          pair.asPascalCase,
+          style: _biggerFont,
+          textAlign: TextAlign.center,
+        ),
+        onTap: () {
+          setState(() {
+            widget.savedNames.remove(pair);
+          });
+        },
+        trailing: const Icon(
+          Icons.favorite ,
+          color: Colors.red ,
+          semanticLabel: 'Remove from saved'
+        ),
+      );
+    });
+
+    final List<Widget> divided = ListTile.divideTiles(
+      context: context,
+      tiles: tiles,
+    ).toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Saved Suggestions'),
+      ),
+      body: ListView(children: divided)
     );
   }
 
